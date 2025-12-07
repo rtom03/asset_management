@@ -23,6 +23,7 @@ import AlertToast from "@/components/AlertToast.jsx";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { BASE_URL } from "@/services/appServices.js";
+import { Loader, Loader2, LucideLoader2 } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -30,25 +31,33 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(!loading);
     try {
-      const email = e.target.email.value;
+      const username = e.target.username.value;
       const password = e.target.password.value;
-      const res = await loginUser(email, password);
-      dispatch(login(res));
-      if (res.ok) {
+      const res = await loginUser(username, password);
+      console.log(res.token);
+      if (res.user) {
+        dispatch(login(res));
         setAlert({ type: "success", message: res.message });
+        e.target.username.value = "";
+        e.target.password.value = "";
+        navigate("/");
       } else {
         setAlert({ type: "failed", message: res.message });
+        e.target.email.value = "";
+        e.target.password.value = "";
       }
-      e.target.email.value = "";
-      e.target.password.value = "";
-      navigate("/");
+      setLoading(false);
     } catch (error) {
       setAlert({ type: "error", message: "Something went wrong. Try again." });
+      console.log(error);
+      setLoading(false);
     }
   };
   return (
@@ -64,12 +73,12 @@ export function LoginForm({
           <form onSubmit={handleLogin}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="username">Username</FieldLabel>
                 <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="john_doe"
                   required
                 />
               </Field>
@@ -87,41 +96,12 @@ export function LoginForm({
               </Field>
               <Field>
                 <Button type="submit" className="bg-amber-600 cursor-pointer">
-                  Login
+                  {loading ? (
+                    <LucideLoader2 className="animate-spin" />
+                  ) : (
+                    "Login"
+                  )}
                 </Button>
-                {/* <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => loginWithRedirect()}
-                  className="cursor-pointer"
-                > */}
-                <GoogleLogin
-                  onSuccess={async (credentialResponse) => {
-                    try {
-                      const decoded = jwtDecode(credentialResponse.credential);
-                      const idToken = credentialResponse.credential;
-                      console.log(decoded);
-                      const res = await fetch(`${BASE_URL}/user/sign-in`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          email: decoded.email,
-                          name: decoded.name,
-                          provider: "google",
-                          idToken,
-                        }),
-                      });
-
-                      const data = await res.json(); // parse JSON from backend
-                      dispatch(login(data)); // now dispatch the actual response
-                      navigate("/");
-                    } catch (err) {
-                      console.error("Login failed:", err);
-                    }
-                  }}
-                />
-                {/* Login with Google
-                </Button> */}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="/register">Sign up</a>
                 </FieldDescription>

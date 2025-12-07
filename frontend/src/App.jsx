@@ -21,7 +21,7 @@ function App() {
 
   return (
     <div className="h-screen bg-white text-black dark:bg-gray-900 dark:text-white ml-12 ">
-      <TopBar />
+      {/* <TopBar /> */}
       <Routes>
         <Route
           path="/"
