@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = 10;
 
-export async function registerUser(req, res) {
+export async function createUser(req, res) {
   try {
     const { name, username, password, dept, isAdmin } = req.body;
 
