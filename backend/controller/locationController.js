@@ -41,7 +41,35 @@ export const createLocation = async (req, res) => {
 export const deleteLocation = async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedLocation = await prisma.
+    if (!id) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+    const deletedLocation = await prisma.location.delete({
+      where: { id: Number(id) },
+    });
+    return res.status(201).json({
+      message: `Location with the name ${deleteLocation.name} has been successfully deleted`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const editLocation = async (req, res) => {
+  const { id } = req.params;
+  const { name, address } = req.body;
+  try {
+    if (!id) {
+      return res.status(404).json({ message: "Location not found" });
+    }
+    const location = await prisma.location.update({
+      where: { id: Number(id) },
+      data: { name, address },
+    });
+    return res.status(201).json({
+      message: "Location has been successfully edited",
+      data: location,
+    });
   } catch (error) {
     console.log(error);
   }
