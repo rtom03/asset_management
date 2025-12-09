@@ -30,11 +30,18 @@ export const createLocation = async (req, res) => {
         },
       });
     }
-    return res
-      .status(400)
-      .json({
-        message: `A location with the name ${name} already exist....try again with a unique value`,
-      });
+    return res.status(400).json({
+      message: `A location with the name ${name} already exist....try again with a unique value`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteLocation = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedLocation = await prisma.
   } catch (error) {
     console.log(error);
   }

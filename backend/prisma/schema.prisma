@@ -7,38 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id         Int       @id @default(autoincrement())
-  name       String    @db.VarChar(255)
-  username   String    @db.VarChar(255)
-  password   String    @db.VarChar(255)
-  isAdmin    Boolean   @default(false)
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(255)
+  username     String     @db.VarChar(255)
+  password     String     @db.VarChar(255)
+  isAdmin      Boolean    @default(false)
+  title        String     @db.VarChar(255)
   departmentId Int
-  dept       Department @relation(fields: [departmentId],references: [id])
-  title      String    @db.VarChar(255)
-  manager    Boolean   @default(false)
-  locationId Int
-  location   Location  @relation(fields: [locationId], references: [id])
-
+  department   Department @relation(fields: [departmentId], references: [id])
 }
-
 
 model Department {
-   id         Int       @id @default(autoincrement())
-   name       String  @db.VarChar(255)
-   manager    String  @db.VarChar(255)
-   location   String  @db.VarChar(255)
-   users      User[]  // <--- One location has many users
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  manager    String   @db.VarChar(255)
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId Int
+  users      User[] // <--- One location has many users
 }
 
-
 model Location {
-  id       Int     @id @default(autoincrement())
-  name     String  @db.VarChar(255)
-  people   Int
-  address  String  @db.VarChar(255)
-  city     String  @db.VarChar(255)
-  state    String  @db.VarChar(255)
-  users    User[]  // <--- One location has many users
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(255)
+  people      Int
+  address     String       @db.VarChar(255)
+  city        String       @db.VarChar(255)
+  state       String       @db.VarChar(255)
+  departments Department[]
 }
