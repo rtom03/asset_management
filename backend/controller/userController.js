@@ -15,67 +15,34 @@ export async function createUser(req, res) {
     if (user) {
       return res.status(409).json({ message: "User already exists" });
     } else {
-      let newUser;
-      let token;
-      if (isAdmin) {
-        let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        newUser = await prisma.user.create({
-          data: {
-            name,
-            username,
-            password: hashedPassword,
-            isAdmin,
-            title,
-            department: {
-              create: {
-                name: department.name,
-                manager: department.manager,
-                location: {
-                  create: {
-                    name: department.location.name,
-                    people: department.location.people,
-                    address: department.location.address,
-                    city: department.location.city,
-                    state: department.location.state,
-                  },
+      let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const newUser = await prisma.user.create({
+        data: {
+          name,
+          username,
+          password: hashedPassword,
+          isAdmin,
+          title,
+          department: {
+            create: {
+              name: department.name,
+              manager: department.manager,
+              location: {
+                create: {
+                  name: department.location.name,
+                  people: department.location.people,
+                  address: department.location.address,
+                  city: department.location.city,
+                  state: department.location.state,
                 },
               },
             },
           },
-        });
-        createJwt(res, newUser.id);
-      } else {
-        newUser = await prisma.user.create({
-          data: {
-            name,
-            username,
-            isAdmin,
-            title,
-            department: {
-              create: {
-                name: department.name,
-                manager: department.manager,
-                location: {
-                  create: {
-                    name: department.location.name,
-                    people: department.location.people,
-                    address: department.location.address,
-                    city: department.location.city,
-                    state: department.location.state,
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
-      return res.status(201).json({
-        user: {
-          id: newUser.id,
-          username: newUser.username,
-          dept: newUser.dept,
         },
-        token,
+      });
+      createJwt(res, newUser.id);
+      return res.status(201).json({
+        user: newUser,
       });
     }
   } catch (err) {
