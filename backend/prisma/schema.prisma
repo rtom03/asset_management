@@ -8,22 +8,31 @@ datasource db {
 }
 
 model User {
-  id            Int     @id @default(autoincrement())
-  name          String  @db.VarChar(255)
-  username      String  @db.VarChar(255)
-  password      String  @db.VarChar(255)   
-  isAdmin       Boolean @default(false)
-  dept          Department
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(255)
+  username     String     @db.VarChar(255)
+  password     String     @db.VarChar(255)
+  isAdmin      Boolean    @default(false)
+  title        String     @db.VarChar(255)
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
 }
 
+model Department {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(255)
+  manager    String   @db.VarChar(255)
+  location   Location @relation(fields: [locationId], references: [id])
+  locationId Int
+  users      User[] // <--- One location has many users
+}
 
-enum Department {
-  CCTV_OPERATION
-  ESG
-  FINANCE
-  FRONT_DESK
-  HR
-  IT
-  MARKETING
-  PROCUREMENT
+model Location {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(255)
+  people      Int
+  address     String       @db.VarChar(255)
+  city        String       @db.VarChar(255)
+  state       String       @db.VarChar(255)
+  departments Department[]
 }

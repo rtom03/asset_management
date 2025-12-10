@@ -4,11 +4,6 @@ import Register from "./components/Register";
 import Home from "./components/Home";
 import { useSelector } from "react-redux";
 import { Navigate } from "react-router-dom";
-import Header from "./components/Header";
-import Purchase from "./components/Purchase";
-import Inventory from "./components/Inventory";
-import Rfq from "./components/Rfq";
-import TopBar from "./components/TopBar";
 
 const ProtectedRoute = ({ user, children }) => {
   if (!user.user) return <Navigate to="/login" replace />;
@@ -24,7 +19,7 @@ function App() {
       {/* <TopBar /> */}
       <Routes>
         <Route
-          path="/"
+          path="/feed"
           element={
             <ProtectedRoute user={user}>
               <Home />
@@ -32,10 +27,6 @@ function App() {
           }
         />
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/purchase" element={<Purchase />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/purchase" element={<Rfq />} />
       </Routes>
     </div>
   );

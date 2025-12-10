@@ -1,14 +1,14 @@
 import express from "express";
 import {
+  createUser,
   loginUser,
   logoutUser,
-  registerUser,
 } from "../controller/userController.js";
 import { isAdminRoute, protectedRoute } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/sign-up", registerUser);
+router.post("/create-user", createUser);
 router.post("/sign-in", loginUser);
 router.post("/sign-out", logoutUser);
 

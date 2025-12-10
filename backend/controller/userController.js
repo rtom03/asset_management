@@ -5,40 +5,79 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = 10;
 
-export async function registerUser(req, res) {
+export async function createUser(req, res) {
   try {
-    const { name, username, password, dept, isAdmin } = req.body;
-
+    const { name, username, password, isAdmin, manager, title, department } =
+      req.body;
     const user = await prisma.user.findFirst({
       where: { username: String(username) },
     });
-
     if (user) {
       return res.status(409).json({ message: "User already exists" });
-    }
-    let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        username,
-        password: hashedPassword,
-        dept,
-        isAdmin,
-      },
-    });
-    // create your app JWT
-    const token = jwt.sign(
-      { id: newUser.id, username: newUser.username },
-      JWT_SECRET,
-      {
-        expiresIn: "7d",
+    } else {
+      let newUser;
+      let token;
+      if (isAdmin) {
+        let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+        newUser = await prisma.user.create({
+          data: {
+            name,
+            username,
+            password: hashedPassword,
+            isAdmin,
+            title,
+            department: {
+              create: {
+                name: department.name,
+                manager: department.manager,
+                location: {
+                  create: {
+                    name: department.location.name,
+                    people: department.location.people,
+                    address: department.location.address,
+                    city: department.location.city,
+                    state: department.location.state,
+                  },
+                },
+              },
+            },
+          },
+        });
+        createJwt(res, newUser.id);
+      } else {
+        newUser = await prisma.user.create({
+          data: {
+            name,
+            username,
+            isAdmin,
+            title,
+            department: {
+              create: {
+                name: department.name,
+                manager: department.manager,
+                location: {
+                  create: {
+                    name: department.location.name,
+                    people: department.location.people,
+                    address: department.location.address,
+                    city: department.location.city,
+                    state: department.location.state,
+                  },
+                },
+              },
+            },
+          },
+        });
       }
-    );
-
-    return res.status(201).json({
-      user: { id: newUser.id, username: newUser.username, dept: newUser.dept },
-      token,
-    });
+      return res.status(201).json({
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          dept: newUser.dept,
+        },
+        token,
+      });
+    }
   } catch (err) {
     console.error(err);
     return res
