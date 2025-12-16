@@ -7,73 +7,54 @@ const SALT_ROUNDS = 10;
 
 export async function createUser(req, res) {
   try {
-    const { name, username, password, isAdmin, manager, title, department } =
-      req.body;
-    const user = await prisma.user.findFirst({
+    const { name, username, password, isAdmin, title, department } = req.body;
+    const user = await prisma.user.findUnique({
       where: { username: String(username) },
     });
     if (user) {
       return res.status(409).json({ message: "User already exists" });
     } else {
-      let newUser;
-      let token;
-      if (isAdmin) {
-        let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-        newUser = await prisma.user.create({
-          data: {
-            name,
-            username,
-            password: hashedPassword,
-            isAdmin,
-            title,
-            department: {
+      let hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+      const newUser = await prisma.user.create({
+        data: {
+          name,
+          username,
+          password: hashedPassword,
+          isAdmin,
+          title,
+          department: {
+            connectOrCreate: {
+              where: { name: department.name },
               create: {
                 name: department.name,
                 manager: department.manager,
                 location: {
-                  create: {
-                    name: department.location.name,
-                    people: department.location.people,
-                    address: department.location.address,
-                    city: department.location.city,
-                    state: department.location.state,
+                  connectOrCreate: {
+                    where: { name: department.location.name },
+                    create: {
+                      name: department.location.name,
+                      people: 0,
+                      address: department.location.address,
+                      city: department.location.city,
+                      state: department.location.state,
+                    },
                   },
                 },
               },
             },
           },
-        });
-        createJwt(res, newUser.id);
-      } else {
-        newUser = await prisma.user.create({
-          data: {
-            name,
-            username,
-            isAdmin,
-            title,
-            department: {
-              create: {
-                name: department.name,
-                manager: department.manager,
-                location: {
-                  create: {
-                    name: department.location.name,
-                    people: department.location.people,
-                    address: department.location.address,
-                    city: department.location.city,
-                    state: department.location.state,
-                  },
-                },
-              },
-            },
-          },
-        });
-      }
+        },
+      });
+      await prisma.location.update({
+        where: { name: department.location.name },
+        data: { people: { increment: 1 } },
+      });
+
+      createJwt(res, newUser.id);
       return res.status(201).json({
         user: {
           data: newUser,
         },
-        token,
       });
     }
   } catch (err) {
@@ -135,26 +116,24 @@ export const updateUserInfo = async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: Number(id) } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
-    }
-
-    let updatedData;
-    const updateData = {
-      title,
-    };
-
-    if (departmentId) {
-      updatedData = updateData.department = {
-        connect: { id: Number(departmentId) },
+    } else {
+      const updateData = {
+        title,
       };
-    }
-    updatedData = await prisma.user.update({
-      where: { id: Number(id) },
-      data: updateData,
-    });
+      if (departmentId) {
+        updatedData = updateData.department = {
+          connect: { id: Number(departmentId) },
+        };
+      }
+      const updatedData = await prisma.user.update({
+        where: { id: Number(id) },
+        data: updateData,
+      });
 
-    return res
-      .status(200)
-      .json({ message: "User info updated successfully", data: updatedData });
+      return res
+        .status(200)
+        .json({ message: "User info updated successfully", data: updatedData });
+    }
   } catch (error) {
     console.log(error);
   }

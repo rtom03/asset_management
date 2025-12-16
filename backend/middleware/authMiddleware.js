@@ -25,7 +25,7 @@ const protectedRoute = async (req, res, next) => {
   }
 };
 
-const isAdminRoute = (req, res, next) => {
+const isAdmin = (req, res, next) => {
   if (req.user && req.user.isAdmin) {
     next();
   } else {
@@ -35,4 +35,4 @@ const isAdminRoute = (req, res, next) => {
   }
 };
 
-export { protectedRoute, isAdminRoute };
+export { protectedRoute, isAdmin };

@@ -5,14 +5,14 @@ import {
   logoutUser,
   updateUserInfo,
 } from "../controller/userController.js";
-import { isAdminRoute, protectedRoute } from "../middleware/authMiddleware.js";
+import { isAdmin, protectedRoute } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/create-user", createUser);
 router.post("/sign-in", loginUser);
 router.post("/sign-out", logoutUser);
-router.put("/update-user", updateUserInfo);
+router.put("/update-user", protectedRoute, isAdmin, updateUserInfo);
 
 // //   FOR ADMIN ONLY - ADMIN ROUTES
 
