@@ -110,19 +110,19 @@ export const logoutUser = async (req, res) => {
 };
 
 export const updateUserInfo = async (req, res) => {
-  const { title, departmentId } = req.body;
+  const { title, department } = req.body;
   const { id } = req.params;
   try {
     const user = await prisma.user.findUnique({ where: { id: Number(id) } });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     } else {
-      const updateData = {
+      let updateData = {
         title,
       };
-      if (departmentId) {
-        updatedData = updateData.department = {
-          connect: { id: Number(departmentId) },
+      if (department) {
+        updateData.department = {
+          connect: { name: department },
         };
       }
       const updatedData = await prisma.user.update({

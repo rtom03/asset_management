@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/create-user", createUser);
 router.post("/sign-in", loginUser);
 router.post("/sign-out", logoutUser);
-router.put("/update-user", protectedRoute, isAdmin, updateUserInfo);
+router.put("/update-user/:id", updateUserInfo);
 
 // //   FOR ADMIN ONLY - ADMIN ROUTES
 
