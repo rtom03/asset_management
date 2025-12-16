@@ -1,23 +1,29 @@
-import { prisma } from "../utils/db";
+import { prisma } from "../utils/db.js";
 
 export const createLocation = async (req, res) => {
-  const { name, people, address, city, state } = req.body;
+  const { name, address, city, state } = req.body;
   try {
     const locationExist = await prisma.location.findUnique({
-      where: { name: String(name) },
+      where: { name: name },
     });
+
+    const getUsers = await prisma.user.count({
+      cursor: { department: { name: name } },
+    });
+    const getDepartmentsCount = await prisma.department.count();
+    console.log(getUsers);
 
     if (!locationExist) {
       const data = await prisma.location.create({
         data: {
           name,
-          people,
+          people: getUsers,
           address,
           city,
           state,
+          departments: getDepartmentsCount,
         },
       });
-
       return res.status(201).json({
         message: "Location created successfully",
         data: {
@@ -48,7 +54,7 @@ export const deleteLocation = async (req, res) => {
       where: { id: Number(id) },
     });
     return res.status(201).json({
-      message: `Location with the name ${deleteLocation.name} has been successfully deleted`,
+      message: `Location with the name ${deletedLocation.name} has been successfully deleted`,
     });
   } catch (error) {
     console.log(error);
