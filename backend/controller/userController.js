@@ -7,9 +7,8 @@ const SALT_ROUNDS = 10;
 
 export async function createUser(req, res) {
   try {
-    const { name, username, password, isAdmin, manager, title, department } =
-      req.body;
-    const user = await prisma.user.findFirst({
+    const { name, username, password, isAdmin, title, department } = req.body;
+    const user = await prisma.user.findUnique({
       where: { username: String(username) },
     });
     if (user) {
@@ -24,25 +23,38 @@ export async function createUser(req, res) {
           isAdmin,
           title,
           department: {
-            create: {
-              name: department.name,
-              manager: department.manager,
-              location: {
-                create: {
-                  name: department.location.name,
-                  people: department.location.people,
-                  address: department.location.address,
-                  city: department.location.city,
-                  state: department.location.state,
+            connectOrCreate: {
+              where: { name: department.name },
+              create: {
+                name: department.name,
+                manager: department.manager,
+                location: {
+                  connectOrCreate: {
+                    where: { name: department.location.name },
+                    create: {
+                      name: department.location.name,
+                      people: 0,
+                      address: department.location.address,
+                      city: department.location.city,
+                      state: department.location.state,
+                    },
+                  },
                 },
               },
             },
           },
         },
       });
+      await prisma.location.update({
+        where: { name: department.location.name },
+        data: { people: { increment: 1 } },
+      });
+
       createJwt(res, newUser.id);
       return res.status(201).json({
-        user: newUser,
+        user: {
+          data: newUser,
+        },
       });
     }
   } catch (err) {
@@ -63,7 +75,8 @@ export async function loginUser(req, res) {
 
     if (!user) {
       return res.status(404).json({
-        message: "User does not exist. Please sign up first.",
+        message:
+          "User does not exist....reach out to your administrator to create account",
       });
     }
     const hashedPassword = await bcrypt.compare(password, user.password);
@@ -93,5 +106,35 @@ export const logoutUser = async (req, res) => {
     res.status(200).json({ message: "Logout successfully" });
   } catch (err) {
     console.log(err);
+  }
+};
+
+export const updateUserInfo = async (req, res) => {
+  const { title, department } = req.body;
+  const { id } = req.params;
+  try {
+    const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    } else {
+      let updateData = {
+        title,
+      };
+      if (department) {
+        updateData.department = {
+          connect: { name: department },
+        };
+      }
+      const updatedData = await prisma.user.update({
+        where: { id: Number(id) },
+        data: updateData,
+      });
+
+      return res
+        .status(200)
+        .json({ message: "User info updated successfully", data: updatedData });
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
