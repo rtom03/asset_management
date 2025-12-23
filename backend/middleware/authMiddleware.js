@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../utils/db.js";
+import { prisma } from "../config/config.js";
 
 const protectedRoute = async (req, res, next) => {
   try {
@@ -8,11 +8,10 @@ const protectedRoute = async (req, res, next) => {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       const resp = await prisma.user.findUnique({
         where: { id: String(decodedToken.userId) },
-        select: { isAdmin, email },
       });
 
       req.user = {
-        email: resp.email,
+        username: resp.username,
         isAdmin: resp.isAdmin,
         userId: decodedToken.userId,
       };
@@ -21,7 +20,9 @@ const protectedRoute = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
-    return res.status(401).json({ message: "Not authorized. Try login again" });
+    return res
+      .status(401)
+      .json({ message: "Not authorized. Try logging in again" });
   }
 };
 
