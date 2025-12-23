@@ -80,7 +80,7 @@ export async function loginUser(req, res) {
     const hashedPassword = await bcrypt.compare(password, user.password);
     console.log(hashedPassword);
     if (!hashedPassword) {
-      return res.status(404).json({
+      return res.status(401).json({
         message:
           "password or username does not match! please the correct password",
       });

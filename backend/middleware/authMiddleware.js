@@ -9,7 +9,9 @@ const protectedRoute = async (req, res, next) => {
       const resp = await prisma.user.findUnique({
         where: { id: String(decodedToken.userId) },
       });
-
+      if (!resp) {
+        return res.status(401).json({ message: "No user returned" });
+      }
       req.user = {
         username: resp.username,
         isAdmin: resp.isAdmin,
