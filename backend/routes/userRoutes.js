@@ -9,10 +9,10 @@ import { isAdmin, protectedRoute } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/create-user", createUser);
+router.post("/create-user", protectedRoute, isAdmin, createUser);
 router.post("/sign-in", loginUser);
 router.post("/sign-out", logoutUser);
-router.put("/update-user/:id", updateUserInfo);
+router.put("/update-user/:id", protectedRoute, isAdmin, updateUserInfo);
 
 // //   FOR ADMIN ONLY - ADMIN ROUTES
 
