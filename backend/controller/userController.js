@@ -1,6 +1,5 @@
-import { createJwt, prisma } from "../utils/db.js";
+import { createJwt, prisma } from "../config/config.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const SALT_ROUNDS = 10;
@@ -68,29 +67,26 @@ export async function createUser(req, res) {
 export async function loginUser(req, res) {
   try {
     const { username, password } = req.body;
-
-    const user = await prisma.user.findFirst({
+    const user = await prisma.user.findUnique({
       where: { username: String(username) },
     });
 
     if (!user) {
       return res.status(404).json({
         message:
-          "User does not exist....reach out to your administrator to create account",
+          "User does not exist....reach out to your administrator to create your account",
       });
     }
     const hashedPassword = await bcrypt.compare(password, user.password);
-    if (hashedPassword) {
-      const token = jwt.sign(
-        { id: user.id, username: user.username },
-        JWT_SECRET,
-        {
-          expiresIn: "7d",
-        }
-      );
-
-      return res.status(200).json({ user, token });
+    console.log(hashedPassword);
+    if (!hashedPassword) {
+      return res.status(404).json({
+        message:
+          "password or username does not match! please the correct password",
+      });
     }
+    createJwt(res, user.id);
+    return res.status(200).json({ user });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error", error: err.message });

@@ -5,7 +5,7 @@ import express from "express";
 import morgan from "morgan";
 import { errorHandler, routeNotFound } from "./middleware/errorMiddleware.js";
 import routes from "./routes/index.js";
-import { connectDB } from "./utils/db.js";
+import { connectDB } from "./config/config.js";
 
 dotenv.config();
 

@@ -1,4 +1,4 @@
-import { prisma } from "../utils/db.js";
+import { prisma } from "../config/config.js";
 
 export const createLocation = async (req, res) => {
   const { name, address, city, state } = req.body;
